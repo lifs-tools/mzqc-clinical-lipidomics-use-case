@@ -1,19 +1,3 @@
-if (!require("remotes")) install.packages("remotes")
-remotes::install_github("SLINGhub/MRMhub", subdir = "quant")
-install.packages("here") # Used for parallel processing
-remotes::install_github("lifs-tools/rgoslin")
-install.packages("patchwork")
-install.packages("ggplot2")
-install.packages("ggrepel")
-install.packages("ggnewscale")
-install.packages("ggpmisc")
-install.packages("ggbeeswarm")
-install.packages("mirai")
-install.packages("ggvenn")
-install.packages("dplyr")
-install.packages("rmzqc")
-install.packages("tidyr")
-
 library(mrmhub)
 library(rgoslin)
 library(patchwork)
@@ -188,8 +172,7 @@ plot_rt_vs_chain(
 
 
 # Feature correlation analysis
-# this below is to exclude a sample that has a very low intensity for all features, see next steps for 
-# details
+# this below is to exclude a sample that has a very low intensity for all features, see next steps for details
 plot_feature_correlations(
   mexp, 
   variable = "intensity" , 
@@ -643,7 +626,9 @@ feature_qc_metrics <- mexp@metrics_qc %>%
     sb_ratio_pblk,
     
     # Linearity
-    r2_rqc_B
+    r2_rqc_B,
+    slopenorm_rqc_B,
+    y0norm_rqc_B
   )
 
 # Define input file metadata
@@ -653,6 +638,7 @@ inputFiles = list(
     name = "Dataset3_MRMhub-Integrator_20251010.csv",
     location = paste0("file://", data_path),
     fileFormat = rmzqc::MzQCcvParameter$new(
+      # TO-DO: discuss accession number
       accession = "MS:1001040",
       name = "intermediate analysis format"
     )
@@ -666,11 +652,11 @@ metadata <- rmzqc::MzQCmetadata$new(
   
   analysisSoftware = list(
     rmzqc::MzQCanalysisSoftware$new(
-      name = "lipidomics analysis software",
+      name = "MRMhub",
       version = as.character(
         packageVersion("mrmhub")
       ),
-      accession = "MS:1002964",
+      accession = "MS:XXXXXXX", # to be defined
       uri = "https://github.com/SLINGhub/MRMhub/"
     )
   )
@@ -679,45 +665,61 @@ metadata <- rmzqc::MzQCmetadata$new(
 
 quality_metrics <- list(
   # BQC CV
-  # TO-DO: which term for the coefficient of variation metrices? alternatively MS:1003178?
-  # Seperate CV for BQC / TQC? 
   rmzqc::MzQCqualityMetric$new(
-    accession = "MS:1002963",
-    # Median batch-wise CV of quantified concentrations across BQC replicates
-    name = "coefficient of variation pooled QC BQC", # Wrong name for export
-    value = data.frame(
+    accession = "MS:XXXXXXX", # to be defined
+    name = "pooled batch quality control concentration coefficient of variation",
+    value = list(
       feature_id = feature_qc_metrics$feature_id,
       value = feature_qc_metrics$conc_cv_bqc
     )
   ),
   # TQC CV
   rmzqc::MzQCqualityMetric$new(
-    accession = "MS:1002963",
-    # Median batch-wise CV of quantified concentrations across TQC replicates
-    name = "coefficient of variation pooled QC TQC", # Wrong name for export
-    value = data.frame(
+    accession = "MS:XXXXXXX", # to be defined
+    name = "pooled technical quality control concentration coefficient of variation",
+    value = list(
       feature_id = feature_qc_metrics$feature_id,
       value = feature_qc_metrics$conc_cv_tqc
     )
   ),
+  
   # Signal-to-blank
   # TO-DO: Add term to in the psi-ms-CV
   rmzqc::MzQCqualityMetric$new(
-    accession = "MS:XXXXXXX",
-    name = "signal-to-blank ratio",
-    value = data.frame(
+    accession = "MS:XXXXXXX", # to be defined
+    name = "median-based signal-to-blank ratio",
+    value = list(
       feature_id = feature_qc_metrics$feature_id,
       value = feature_qc_metrics$sb_ratio_pblk
     )
   ),
+  
   # Linearity
   # TO-DO: Add term to in the psi-ms-CV
   rmzqc::MzQCqualityMetric$new(
-    accession = "MS:XXXXXXX",
-    name = "dilution series linearity R squared",
-    value = data.frame(
+    accession = "MS:XXXXXXX", # to be defined
+    name = "response curve linearity coefficient of determination (R²)",
+    value = list(
       feature_id = feature_qc_metrics$feature_id,
       value = feature_qc_metrics$r2_rqc_B
+    )
+  ),
+  
+  rmzqc::MzQCqualityMetric$new(
+    accession = "MS:XXXXXXX", # to be defined
+    name = "response curve linearity normalized slope",
+    value = list(
+      feature_id = feature_qc_metrics$feature_id,
+      value = feature_qc_metrics$slopenorm_rqc_B
+    )
+  ),
+  
+  rmzqc::MzQCqualityMetric$new(
+    accession = "MS:XXXXXXX", # to be defined
+    name = "response curve linearity normalized intercept",
+    value = list(
+      feature_id = feature_qc_metrics$feature_id,
+      value = feature_qc_metrics$y0norm_rqc_B
     )
   )
 )
@@ -727,15 +729,23 @@ set_quality <- rmzqc::MzQCsetQuality$new(
   qualityMetrics = quality_metrics
 )
 
+controlled_vocabularies <- list(
+  rmzqc::MzQCcontrolledVocabulary$new(
+    name = "Proteomics Standards Initiative Mass Spectrometry Controlled Vocabulary",
+    uri = "https://github.com/HUPO-PSI/psi-ms-CV",
+    version = "4.1.257"
+  )
+)
 
 mzqc_obj <- rmzqc::MzQCmzQC$new(
   version = "1.0.0",
   creationDate = rmzqc::MzQCDateTime$new(),
-  contactName = Sys.info()[["user"]],
+  contactName = "Franziska Nicolaus",
   contactAddress = "f.nicolaus@fz-juelich.de",
-  description = "MRMhub lipidomics workflow QC export containing pooled QC CVs, signal-to-blank ratios and response curve metrics.",
+  description = "MRMhub lipidomics workflow mzQC export containing pooled QC concentration coefficients of variation, signal-to-blank ratios, and response curve linearity metrics.",
   runQualities = list(),
   setQualities = list(set_quality),
+  controlledVocabularies = controlled_vocabularies
 )
 
 output_file <- "../output/Dataset3_testQCmetrics.mzQC"
