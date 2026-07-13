@@ -11,6 +11,7 @@ library(ggvenn)
 library(dplyr)
 library(rmzqc)
 library(tidyr)
+library(patchwork)
 
 setwd("~/mzqc-clinical-lipidomics-use-case/script")
 
@@ -755,3 +756,72 @@ rmzqc::writeMZQC(
   mzqc = mzqc_obj
 )
 cat("Yay! The mzQC file has been successfully written to:", output_file, "\n")
+
+
+
+# Histograms
+theme_qc <- theme_bw(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold")
+  )
+
+# BQC CV
+p1 <- ggplot(feature_qc_metrics, aes(x = conc_cv_bqc)) +
+  geom_histogram(
+    bins = 30,
+    fill = "#4C78A8",
+    color = "white"
+  ) +
+  labs(
+    title = "BQC Coefficient of Variation",
+    x = "Concentration CV (%)",
+    y = "Number of lipid species"
+  ) +
+  theme_qc
+
+# TQC CV
+p2 <- ggplot(feature_qc_metrics, aes(x = conc_cv_tqc)) +
+  geom_histogram(
+    bins = 30,
+    fill = "#59A14F",
+    color = "white"
+  ) +
+  labs(
+    title = "TQC CV",
+    x = "Concentration CV (%)",
+    y = "Number of lipid species"
+  ) +
+  theme_qc
+
+# Signal-to-Blank
+p3 <- ggplot(feature_qc_metrics, aes(x = sb_ratio_pblk)) +
+  geom_histogram(
+    bins = 30,
+    fill = "#F28E2B",
+    color = "white"
+  ) +
+  scale_x_log10() +
+  labs(
+    title = "Signal-to-Blank",
+    x = "Median Signal-to-Blank Ratio (log10)",
+    y = "Number of lipid species"
+  ) +
+  theme_qc
+
+# R²
+p4 <- ggplot(feature_qc_metrics, aes(x = r2_rqc_B)) +
+  geom_histogram(
+    bins = 20,
+    fill = "#E15759",
+    color = "white"
+  ) +
+  labs(
+    title = expression(R^2),
+    x = expression(R^2),
+    y = "Number of lipid species"
+  ) +
+  theme_qc
+
+# Arrange in a grid
+(p1|p2) / (p3|p4)
