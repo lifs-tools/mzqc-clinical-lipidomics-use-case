@@ -12,8 +12,9 @@ library(dplyr)
 library(rmzqc)
 library(tidyr)
 library(patchwork)
+library(here)
 
-setwd("~/mzqc-clinical-lipidomics-use-case/script")
+here("script")
 
 # MzQC - Lipidomics Use Case
 # Dataset of MRMhub provided by SLING available at zenodo: https://zenodo.org/records/15370294 (Dataset: MRMhub-Dataset3.zip; Input files for this workflow: mrmhub-workflows)
@@ -565,22 +566,6 @@ table(mexp@metrics_qc$feature_class)
 plot_qc_summary_overall(mexp) 
 
 
-
-# PCA plots of the final dataset
-plot_pca(
-  data = mexp,
-  variable = "conc",
-  filter_data = FALSE,
-  pca_dims = c(1,2),labels_column = "analysis_order",
-  labels_threshold_mad = 5,
-  qc_types = c("BQC", "TQC", "LTR", "NIST", "SPL"),
-  ellipse_variable = "qc_type",
-  log_transform = TRUE,
-  point_size = 0.7, point_alpha = 0.7, font_base_size = 8, ellipse_alpha = 0.3,
-  include_istd = FALSE,show_labels = TRUE,label_font_size = 1.5) 
-
-
-
 # Lipidome profile
 plot_abundanceprofile(
   data = mexp,
@@ -759,12 +744,10 @@ cat("Yay! The mzQC file has been successfully written to:", output_file, "\n")
 
 
 
+# Further Analysis for the use case
+
+
 # Histograms
-theme_qc <- theme_bw(base_size = 13) +
-  theme(
-    plot.title = element_text(face = "bold", hjust = 0.5),
-    axis.title = element_text(face = "bold")
-  )
 
 # BQC CV
 p1 <- ggplot(feature_qc_metrics, aes(x = conc_cv_bqc)) +
@@ -773,10 +756,14 @@ p1 <- ggplot(feature_qc_metrics, aes(x = conc_cv_bqc)) +
     fill = "#4C78A8",
     color = "white"
   ) +
+  scale_x_continuous(
+    breaks = seq(0, 170, by = 20),
+    limits = c(0, 170)
+  ) +
   labs(
     title = "BQC Coefficient of Variation",
     x = "Concentration CV (%)",
-    y = "Number of lipid species"
+    y = "Number of features"
   ) +
   theme_qc
 
@@ -787,10 +774,14 @@ p2 <- ggplot(feature_qc_metrics, aes(x = conc_cv_tqc)) +
     fill = "#59A14F",
     color = "white"
   ) +
+  scale_x_continuous(
+    breaks = seq(0, 170, by = 20),
+    limits = c(0, 170)
+  ) +
   labs(
-    title = "TQC CV",
+    title = "TQC Coefficient of Variation",
     x = "Concentration CV (%)",
-    y = "Number of lipid species"
+    y = "Number of features"
   ) +
   theme_qc
 
@@ -805,7 +796,7 @@ p3 <- ggplot(feature_qc_metrics, aes(x = sb_ratio_pblk)) +
   labs(
     title = "Signal-to-Blank",
     x = "Median Signal-to-Blank Ratio (log10)",
-    y = "Number of lipid species"
+    y = "Number of features"
   ) +
   theme_qc
 
@@ -819,9 +810,44 @@ p4 <- ggplot(feature_qc_metrics, aes(x = r2_rqc_B)) +
   labs(
     title = expression(R^2),
     x = expression(R^2),
-    y = "Number of lipid species"
+    y = "Number of features"
   ) +
   theme_qc
 
 # Arrange in a grid
-(p1|p2) / (p3|p4)
+(p1 | p2) / (p3 | p4)
+
+
+
+# Additional calculations
+
+# Mean / median of CVs
+qc %>%
+  summarise(
+    BQC_median = median(conc_cv_bqc, na.rm = TRUE),
+    BQC_mean = mean(conc_cv_bqc, na.rm = TRUE),
+    TQC_median = median(conc_cv_tqc, na.rm = TRUE),
+    TQC_mean = mean(conc_cv_tqc, na.rm = TRUE)
+  )
+
+# Bar CV + N of Lipids
+hist_data_bqc <- hist(feature_qc_metrics$conc_cv_bqc, plot = FALSE, breaks = 30)
+i <- which.max(hist_data_bqc$counts)
+
+cat(
+  "Highest bar BQC CV:",
+  hist_data_bqc$breaks[i], "-",
+  hist_data_bqc$breaks[i + 1], "% CV\n",
+  "Lipids:", hist_data_bqc$counts[i], "\n"
+)
+
+hist_data_tqc <- hist(feature_qc_metrics$conc_cv_tqc, plot = FALSE, breaks = 30)
+i <- which.max(hist_data_tqc$counts)
+
+cat(
+  "Highest bar TQC CV:",
+  hist_data_tqc$breaks[i], "-",
+  hist_data_tqc$breaks[i + 1], "% CV\n",
+  "Lipids:", hist_data_tqc$counts[i], "\n"
+)
+
