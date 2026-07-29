@@ -1,7 +1,7 @@
 {
   "mzQC": {
     "version": "1.0.0",
-    "creationDate": "2026-07-09T13:05:07Z",
+    "creationDate": "2026-07-29T08:21:49Z",
     "contactName": "Franziska Nicolaus",
     "contactAddress": "f.nicolaus@fz-juelich.de",
     "description": "MRMhub lipidomics workflow mzQC export containing pooled QC concentration coefficients of variation, signal-to-blank ratios, and response curve linearity metrics.",
@@ -82,8 +82,8 @@
     ],
     "controlledVocabularies": [
       {
-        "name": "Proteomics Standards Initiative Mass Spectrometry Controlled Vocabulary",
-        "uri": "https://github.com/HUPO-PSI/psi-ms-CV",
+        "name": "Proteomics Standards Initiative Mass Spectrometry Ontology",
+        "uri": "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.1.165/psi-ms.obo",
         "version": "4.1.257"
       }
     ]

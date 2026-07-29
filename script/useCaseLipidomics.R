@@ -247,7 +247,7 @@ plot_pca_loading(
 
 
 
-# Matrix efffects
+# Matrix effects
 plot_qc_matrixeffects(
   mexp, 
   variable = "intensity",
@@ -717,8 +717,8 @@ set_quality <- rmzqc::MzQCsetQuality$new(
 
 controlled_vocabularies <- list(
   rmzqc::MzQCcontrolledVocabulary$new(
-    name = "Proteomics Standards Initiative Mass Spectrometry Controlled Vocabulary",
-    uri = "https://github.com/HUPO-PSI/psi-ms-CV",
+    name = "Proteomics Standards Initiative Mass Spectrometry Ontology",
+    uri = "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.1.165/psi-ms.obo",
     version = "4.1.257"
   )
 )
@@ -734,7 +734,7 @@ mzqc_obj <- rmzqc::MzQCmzQC$new(
   controlledVocabularies = controlled_vocabularies
 )
 
-output_file <- "../output/Dataset3_testQCmetrics.mzQC"
+output_file <- "../output/lipidomicsUseCase.mzQC"
 
 rmzqc::writeMZQC(
   filepath = output_file,
