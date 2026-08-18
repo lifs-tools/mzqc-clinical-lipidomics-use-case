@@ -454,6 +454,8 @@ mrmhub::plot_qcmetrics_comparison(
   equality_line = TRUE,
   facet_by_class = TRUE,
   point_size = 2,
+#  point_color = "#6da7de",
+#  point_fill = "#6da7de",
   font_base_size = 5,
   x_lim = c(0, 25),
   y_lim = c(-15, 15))
@@ -656,7 +658,7 @@ quality_metrics <- list(
     name = "pooled batch quality control concentration coefficient of variation",
     value = list(
       feature_id = feature_qc_metrics$feature_id,
-      value = feature_qc_metrics$conc_cv_bqc
+      coefficient_of_variation = feature_qc_metrics$conc_cv_bqc
     )
   ),
   # TQC CV
@@ -665,7 +667,7 @@ quality_metrics <- list(
     name = "pooled technical quality control concentration coefficient of variation",
     value = list(
       feature_id = feature_qc_metrics$feature_id,
-      value = feature_qc_metrics$conc_cv_tqc
+      coefficient_of_variation = feature_qc_metrics$conc_cv_tqc
     )
   ),
   
@@ -676,50 +678,40 @@ quality_metrics <- list(
     name = "median-based signal-to-blank ratio",
     value = list(
       feature_id = feature_qc_metrics$feature_id,
-      value = feature_qc_metrics$sb_ratio_pblk
+      signal_to_blank_ratio = feature_qc_metrics$sb_ratio_pblk
     )
   ),
   
-  # Linearity
+  # Response Curve Linearity
   # TO-DO: Add term to in the psi-ms-CV
-  rmzqc::MzQCqualityMetric$new(
-    accession = "MS:XXXXXXX", # to be defined
-    name = "response curve linearity coefficient of determination (R²)",
-    value = list(
-      feature_id = feature_qc_metrics$feature_id,
-      value = feature_qc_metrics$r2_rqc_B
-    )
-  ),
+  
+  # One table containing the three parameters of the
+  # feature-specific response curve regression:
+  # R2, normalized slope, normalized intercept
   
   rmzqc::MzQCqualityMetric$new(
     accession = "MS:XXXXXXX", # to be defined
-    name = "response curve linearity normalized slope",
+    name = "response curve linearity",
     value = list(
       feature_id = feature_qc_metrics$feature_id,
-      value = feature_qc_metrics$slopenorm_rqc_B
-    )
-  ),
-  
-  rmzqc::MzQCqualityMetric$new(
-    accession = "MS:XXXXXXX", # to be defined
-    name = "response curve linearity normalized intercept",
-    value = list(
-      feature_id = feature_qc_metrics$feature_id,
-      value = feature_qc_metrics$y0norm_rqc_B
+      coefficient_of_determination = feature_qc_metrics$r2_rqc_B,
+      normalized_slope = feature_qc_metrics$slopenorm_rqc_B,
+      normalized_intercept = feature_qc_metrics$y0norm_rqc_B
     )
   )
 )
-
+  
 set_quality <- rmzqc::MzQCsetQuality$new(
   metadata = metadata,
   qualityMetrics = quality_metrics
 )
 
+
 controlled_vocabularies <- list(
   rmzqc::MzQCcontrolledVocabulary$new(
     name = "Proteomics Standards Initiative Mass Spectrometry Ontology",
-    uri = "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.1.165/psi-ms.obo",
-    version = "4.1.257"
+    uri = "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.1.258/psi-ms.obo",
+    version = "4.1.258"
   )
 )
 
