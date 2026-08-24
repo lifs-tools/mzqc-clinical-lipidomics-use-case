@@ -41,7 +41,7 @@ mzqc-clinical-lipidomics-use-case/
 
 The workflow is based on:
 
-Burla B, Teo G, Choi H (2026). *mrmhub: Small Molecule Mass Spectrometry Data Processing, Quality Control, and Reporting*. R package version 0.9.2.
+Burla B, Teo G, Choi H (2026). *mrmhub: Small Molecule Mass Spectrometry Data Processing, Quality Control, and Reporting*. R package version 0.9.9.
 
 https://github.com/SLINGhub/MRMhub
 
@@ -62,14 +62,12 @@ Since the metrics exported in this repository describe the analytical performanc
 
 ### Selected QC Metrics
 
-The exported mzQC file contains six feature-level quality metrics generated during the MRMhub workflow:
+The exported mzQC file contains four feature-level quality metrics generated during the MRMhub workflow:
 
 1. **Pooled batch quality control concentration coefficient of variation (BQC CV)**
 2. **Pooled technical quality control concentration coefficient of variation (TQC CV)**
 3. **Median-based signal-to-blank ratio**
-4. **Response curve linearity coefficient of determination (R²)**
-5. **Response curve linearity normalized slope**
-6. **Response curve linearity normalized intercept**
+4. **Response curve linearity** containing **Response Curve R², Normalized Slope and Normalized Intercept**
 
 These metrics describe complementary aspects of analytical performance:
 
@@ -134,12 +132,6 @@ Example:
 ```
 
 Each element of the `feature_id` array corresponds to the QC value at the same position in the `value` array, preserving the relationship between lipid species and their associated quality metrics without duplicating metadata.
-
-The resulting mzQC file provides a compact summary of lipid-specific analytical performance that can be:
-
-* exchanged between software tools
-* archived together with processed datasets
-* used in automated QC pipelines
 
 ---
 
