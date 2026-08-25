@@ -32,11 +32,14 @@ plot_runsequence(
   mexp, 
   show_batches = TRUE, 
   qc_types = c("SPL", "BQC", "TQC", "PBLK", "UBLK", "RQC", "SBLK", "LTR", "NIST"),
-  batch_zebra_stripe = TRUE, base_font_size = 6,
+  batch_zebra_stripe = TRUE, 
   batch_fill_color = "#fffbdb", 
   segment_linewidth = 0.25,
-  show_timestamp = FALSE) +
+  show_timestamp = FALSE
+) +
   theme(plot.title = element_text(size = 5))
+
+ggsave("../output/Dataset3_runsequence.pdf")
 
 # Overview Chromatographic Separation
 plot_abundanceprofile(
@@ -79,43 +82,36 @@ istd_outlier <- fig2a$outliers |>
 print(istd_outlier)
 
 # Plot peak areas of all ISTDs in different QC types against the run order
-plot_runscatter(mexp, variable = "intensity", 
-                include_qualifier = FALSE,
-                qc_types = c("SPL", "BQC", "TQC", "PBLK", "RQC", "SBLK"),
-                include_feature_filter = "IS",
-                #y_min = 0.00, y_max = 0.15,
-                #plot_range = c(0, 910),
-                point_size = .2,
-                point_border_width = 0.1,
-                point_transparency = .7,
-                base_font_size = 4,
-                cols_page = 3,
-                rows_page = 11,
-                show_progress = FALSE,
-                cap_outliers = TRUE)
+plot_runscatter(
+  mexp,
+  variable = "intensity",
+  include_qualifier = FALSE,
+  qc_types = c("SPL", "BQC", "TQC", "PBLK", "RQC", "SBLK"),
+  include_feature_filter = "IS",
+  #y_min = 0.00, y_max = 0.15,
+  #plot_range = c(0, 910),
+  point_size = .2, point_border_width = 0.1, point_alpha = .7,
+  font_base_size = 4, cols_page = 3, rows_page = 11, show_progress = FALSE,
+  cap_outliers = TRUE)
 
 # Check for potential systematic outliers in endogenous analytes
 fig2b <- plot_rla_boxplot(
   data = mexp,
   rla_type_batch = c("within"),
   variable = "intensity",
-  qc_types = c("BQC", "TQC", "SPL", "NIST", "LTR"),  
+  qc_types = c("BQC", "TQC", "SPL", "NIST", "LTR"),
   filter_data = FALSE,
   min_feature_intensity = 1000,
   exclude_feature_filter = "ISTD",
   plot_range = c(1, 4800),
   #y_lim = c(-4,4),
-  show_timestamp = FALSE,
-  outlier_method = "fold",
-  outlier_k = c(-2,1) ,
-  outlier_exclude = FALSE, 
-  x_gridlines = FALSE,
-  batch_zebra_stripe = TRUE,
-  show_plot = TRUE,
-  linewidth = 0.1
-) 
-# Get outlier in ISTD total signal excluding 3 batches with conistently lower ISTD
-analyte_outlier <- fig2b$outliers |> 
+  show_timestamp = FALSE, outlier_method = "fold", outlier_k = c(-2, 1),
+  outlier_exclude = FALSE, x_gridlines = FALSE, batch_zebra_stripe = TRUE,
+  show_plot = TRUE, linewidth = 0.1)
+
+# Get outliers in the endogenous-analyte signals, excluding the 3 batches with
+# consistently lower ISTD
+analyte_outlier <- fig2b$outliers |>
   filter(!(batch_id %in% c("P-01", "P-02", "P-43") & val_res_median > -3))
 print(analyte_outlier)
 
@@ -127,76 +123,60 @@ setdiff(
 
 
 # Combined ISTD and analyte outlier
-outlier_combined <- istd_outlier |> 
+outlier_combined <- istd_outlier |>
   bind_rows(analyte_outlier) |>
-  bind_rows(tibble(analysis_id = "NIST-04", qc_type = "NIST")) |> 
+  bind_rows(tibble(analysis_id = "NIST-04", qc_type = "NIST")) |>
   select(-val_res_median) |>
   distinct()
 
 outlier_combined |> dplyr::count(qc_type)
 
-mexp <- exclude_analyses(mexp, analyses = outlier_combined$analysis_id, clear_existing = TRUE)
+mexp <- exclude_analyses(
+  mexp,
+  analyses = outlier_combined$analysis_id, clear_existing = TRUE)
 
 # Plot the ISTDs again to check if the outliers were removed
-plot_runscatter(mexp, variable = "intensity", 
-                include_qualifier = FALSE,
-                qc_types = c("SPL", "BQC", "TQC", "PBLK", "RQC", "SBLK"),
-                include_feature_filter = "IS",
-                #y_min = 0.00, y_max = 0.15,
-                #plot_range = c(0, 910),
-                point_size = .2,
-                point_border_width = 0.1,
-                point_transparency = .7,
-                base_font_size = 4,
-                cols_page = 3,
-                rows_page = 11,
-                show_progress = FALSE,
-                cap_outliers = TRUE)
-
+plot_runscatter(
+  mexp,
+  variable = "intensity",
+  include_qualifier = FALSE,
+  qc_types = c("SPL", "BQC", "TQC", "PBLK", "RQC", "SBLK"),
+  include_feature_filter = "IS",
+  #y_min = 0.00, y_max = 0.15,
+  #plot_range = c(0, 910),
+  point_size = .2, point_border_width = 0.1, point_alpha = .7,
+  font_base_size = 4, cols_page = 3, rows_page = 11, show_progress = FALSE,
+  cap_outliers = TRUE)
 
 
 # Peak picking QC
 plot_rt_vs_chain(
-  mexp, 
-  qc_types = "SPL", 
-  x_var = "total_c", outlier_residual_min = 0.3,
-  base_font_size <- 6, 
-  cols_page = 4,
-  point_size = 1) +
-  theme( 
-    legend.position = "right",
-    legend.direction = "vertical", 
-    legend.text = element_text(size = base_font_size*0.8),
-    legend.title = element_text(size = base_font_size*0.8),
-    legend.key.size = unit(base_font_size *0.8, "pt"),
-    legend.position.inside = c(0.1, 0.7)
-  )  
+  mexp,
+  qc_types = "SPL",
+  x_var = "total_c", outlier_residual_min = 0.3, font_base_size = 6,
+  cols_page = 4, point_size = 1,
+  legend_position = "right", legend_size = 0.8) 
 
 
 # Feature correlation analysis
-# this below is to exclude a sample that has a very low intensity for all features, see next steps for details
+# this below is to exclude a sample that has a very low intensity for all features, see next steps for
+# details
 plot_feature_correlations(
-  mexp, 
-  variable = "intensity" , 
-  qc_types = c("SPL", "BQC", "TQC"), 
-  point_size = 0.5, 
-  cor_min = 0.98,
-  point_stroke = 0.1,
-  sort_by_corr = TRUE, 
-  return_plot = TRUE,
-  show_progress = FALSE,
-  log_scale = TRUE, 
-  cols_page = 5, 
-  rows_page = 6, 
-  font_base_size = 5)
+  mexp,
+  variable = "intensity",
+  qc_types = c("SPL", "BQC", "TQC"),
+  point_size = 0.5, cor_min = 0.98, point_stroke = 0.1, sort_by_corr = TRUE,
+  return_plots = TRUE, show_progress = FALSE, log_scale = TRUE,
+  cols_page = 5, rows_page = 6, font_base_size = 5)
 
 # Exclude PC 0-36:1 due to the truncation of its peak
-mexp <- exclude_features(mexp, features = "PC(O-36:1)", clear_existing = TRUE)
-
+mexp <- exclude_features(
+  mexp,
+  features = "PC(O-36:1)", clear_existing = TRUE)
 
 
 # Summing up LysoPL and DG isomers
-mexp <- data_sum_features(mexp, feature_classes = c("LPC", "LPE", "LPG", "LPI", "LPS", "DG"))
+mexp <- data_sum_features(mexp)
 
 
 # PCA to check for potential technical outliers
@@ -204,22 +184,15 @@ plot_pca(
   data = mexp,
   variable = "intensity",
   filter_data = FALSE,
-  pca_dims = c(1,2),
-  labels_threshold_mad = 5,
+  pca_dims = c(1, 2), labels_threshold_mad = 5,
   labels_column = "analysis_order",
   qc_types = c("BQC", "TQC", "LTR", "NIST", "SPL"),
   ellipse_variable = "qc_type",
-  log_transform = TRUE,shared_labeltext_hide = "_MS-5",
-  point_size = 0.7, point_alpha = 0.7, font_base_size = 8, ellipse_alpha = 0.3,
-  include_istd = FALSE,show_labels = TRUE,label_font_size = 1.5)   + theme(
-    plot.title = element_blank(),
-    aspect.ratio = 1,
-    legend.position = "inside",
-    legend.direction = "vertical", 
-    legend.text = element_text(size = 9*0.7),
-    legend.title = element_text(size = 9*0.7),
-    legend.key.size = unit(7 *0.7, "pt"),
-    legend.position.inside = c(0.83, 0.83)) 
+  log_transform = TRUE, shared_labeltext_hide = "_MS-5", point_size = 0.7,
+  point_alpha = 0.7, font_base_size = 8, ellipse_alpha = 0.3,
+  include_istd = FALSE,
+  show_labels = TRUE, label_font_size = 1.5,
+  legend_position = "right", legend_size = 0.7)
 
 
 # Loading
@@ -248,27 +221,24 @@ plot_pca_loading(
 
 
 # Matrix effects
-plot_qc_matrixeffects(
-  mexp, 
+plot_matrixeffects(
+  mexp,
   variable = "intensity",
-  batchwise_normalization = TRUE,
-  only_istd = FALSE,include_qualifier = FALSE,
+  batchwise_normalization = TRUE, only_istd = FALSE,
+  include_qualifier = FALSE,
   include_feature_filter = "ISTD",
   exclude_feature_filter = "95|CL|25|d17\\:0|C1P|H2O",
-  y_lim = c(50, 150),
-  point_alpha = 0.05, 
-  box_alpha = 0.3, 
-  point_size = 0.2, 
-  box_linewidth = 0.2,
-  font_base_size = 7,
-  min_median_value = 1000) 
+  y_lim = c(50, 150), point_alpha = 0.05, box_alpha = 0.3, point_size = 0.2,
+  box_linewidth = 0.2, font_base_size = 7, min_median_value = 1000)
 
 
 
 # Isotope correction
-mexp <- correct_interferences(mexp)
-plot_qc_interferences(mexp, y_lim = c(-10, 110), qc_types = c("LTR", "NIST", "SPL", "TQC", "BQC"))
-
+mexp <- correct_custom_interferences(mexp)
+plot_interference_correction(
+  mexp,
+  y_lim = c(-10, 110),
+  qc_types = c("LTR", "NIST", "SPL", "TQC", "BQC"))
 
 
 # Normalization
@@ -284,63 +254,53 @@ plot_pca(
   data = mexp,
   variable = "conc",
   filter_data = FALSE,
-  pca_dims = c(1,2),labels_column = "analysis_order",
+  pca_dims = c(1, 2),
+  labels_column = "analysis_order",
   labels_threshold_mad = 4,
   qc_types = c("BQC", "TQC", "LTR", "NIST", "SPL"),
   ellipse_variable = "qc_type",
-  log_transform = TRUE,
-  point_size = 0.7, point_alpha = 0.7, font_base_size = 8, ellipse_alpha = 0.3,
-  include_istd = FALSE,show_labels = TRUE,label_font_size = 1.5)
+  log_transform = TRUE, point_size = 0.7, point_alpha = 0.7,
+  font_base_size = 8, ellipse_alpha = 0.3,
+  include_istd = FALSE,
+  show_labels = TRUE, label_font_size = 1.5)
 
 
 # Remove batches with identified technical issues
 ids_reruns <- mexp@annot_analyses |> filter(batch_id %in% c("P-43", "P-42")) |> pull(analysis_id)
 
-# ToDo: Currently exclude_analyses usage requires re-processing of the data. Needs to be updated.
-# mexp_final <- exclude_analyses(mexp, analyses = ids_reruns, clear_existing = FALSE)
-
-# Workaround is to filter the dataset directly
 mexp@dataset <- mexp@dataset |> filter(!analysis_id %in% ids_reruns)
 mexp@annot_analyses <- mexp@annot_analyses |> filter(!analysis_id %in% ids_reruns)
 mexp@annot_responsecurves <- mexp@annot_responsecurves |> filter(!analysis_id %in% ids_reruns)
 
 
 # Inspection of individual features concentrations across the run order
-plot_runscatter(mexp, 
-                variable = "conc", filter_data = FALSE,
-                qc_types = c("SPL", "BQC", "TQC", "LTR"), 
-                include_feature_filter = "PC 34\\:2|PC 36\\:4|PE 38\\:4|PI 38\\:4|
-    PC 38\\:6|CE 181\\:1|Cer d18\\:1\\/16\\:0|TG 52\\:3|SM 34\\:1|
-    TG 56\\:3|LPC 18\\:1",
-                #y_min = 0.00,
-                #y_max = 0.15,
-                #plot_range = c(0, 910), 
-                show_reference_lines = TRUE,ref_qc_types = "SPL",
-                reference_fill_color = "#111111",
-                reference_k_sd = 3,
-                point_size = 0.5,
-                point_border_width = 0.1,
-                base_font_size = 6,
-                cols_page = 2,
-                rows_page = 6,
-                cap_outliers = TRUE,
-                reference_sd_shade = FALSE,
-                #batch_zebra_stripe = TRUE, 
-                output_pdf = FALSE,
-                path = "rt_all.pdf")
+plot_runscatter(
+  mexp,
+  variable = "conc",
+  filter_data = FALSE,
+  qc_types = c("SPL", "BQC", "TQC", "LTR"),
+  include_feature_filter = paste0(
+    "PC 34\\:2|PC 36\\:4|PE 38\\:4|PI 38\\:4|PC 38\\:6|CE 18\\:1|",
+    "Cer d18\\:1\\/16\\:0|TG 52\\:3|SM 34\\:1|TG 56\\:3|LPC 18\\:1"),
+  #y_min = 0.00,
+  #y_max = 0.15,
+  #plot_range = c(0, 910),
+  show_reference_lines = TRUE,
+  ref_qc_types = "SPL",
+  reference_fill_color = "#111111", reference_k_sd = 3, point_size = 0.5,
+  point_border_width = 0.1, font_base_size = 6, cols_page = 2,
+  rows_page = 6, cap_outliers = TRUE, reference_sd_shade = FALSE,
+  #batch_zebra_stripe = TRUE,
+  output_pdf = FALSE)
 
 
 # Drift and Batch correction
 mexp <- correct_drift_gaussiankernel(
-  mexp, 
-  variable = "conc", 
-  ref_qc_types = "SPL", 
-  batch_wise = TRUE, 
-  kernel_size = 10, 
-  outlier_filter = TRUE, 
-  outlier_ksd = 5, 
-  recalc_trend_after = TRUE, 
-  show_progress = FALSE) 
+  mexp,
+  variable = "conc",
+  ref_qc_types = "SPL",
+  batch_wise = TRUE, kernel_size = 10, outlier_filter = TRUE,
+  outlier_ksd = 5, recalc_trend_after = TRUE, show_progress = FALSE)
 
 mexp <- correct_batch_centering(
   mexp, 
@@ -349,79 +309,67 @@ mexp <- correct_batch_centering(
 
 
 # Runscatter Plot
-plot_runscatter(mexp, variable = "conc", 
-                filter_data = FALSE,
-                #include_feature_filter = "ISTD", 
-                qc_types = c("SPL", "BQC", "TQC", "LTR"), 
-                include_feature_filter = "PC 34\\:2|PC 36\\:4|PE 38\\:4|PI 38\\:4|
-    PC 38\\:6|CE 181\\:1|Cer d18\\:1\\/16\\:0|TG 52\\:3|SM 34\\:1|
-    TG 56\\:3|LPC 18\\:1",
-                #y_min = 0.00,
-                #y_max = 0.15,
-                #plot_range = c(0, 910), 
-                show_reference_lines = TRUE,ref_qc_types = "SPL",
-                reference_fill_color = "#111111",
-                reference_k_sd = 3,
-                point_size = 0.5,
-                point_border_width = 0.1,
-                base_font_size = 6,
-                cols_page = 2,
-                rows_page = 6,
-                cap_outliers = TRUE,
-                reference_sd_shade = FALSE,
-                #batch_zebra_stripe = TRUE, 
-                output_pdf = FALSE,
-                path = "rt_all.pdf")
+plot_runscatter(
+  mexp,
+  variable = "conc",
+  filter_data = FALSE,
+  #include_feature_filter = "ISTD",
+  qc_types = c("SPL", "BQC", "TQC", "LTR"),
+  include_feature_filter = paste0(
+    "PC 34\\:2|PC 36\\:4|PE 38\\:4|PI 38\\:4|PC 38\\:6|CE 18\\:1|",
+    "Cer d18\\:1\\/16\\:0|TG 52\\:3|SM 34\\:1|TG 56\\:3|LPC 18\\:1"),
+  #y_min = 0.00,
+  #y_max = 0.15,
+  #plot_range = c(0, 910),
+  show_reference_lines = TRUE,
+  ref_qc_types = "SPL",
+  reference_fill_color = "#111111", reference_k_sd = 3, point_size = 0.5,
+  point_border_width = 0.1, font_base_size = 6, cols_page = 2,
+  rows_page = 6, cap_outliers = TRUE, reference_sd_shade = FALSE,
+  #batch_zebra_stripe = TRUE,
+  output_pdf = FALSE)
 
 
 
 
 # Runscatter plots of final concentrations of all features
-plot_runscatter(mexp, variable = "conc_raw", 
-                #include_feature_filter = "ISTD", 
-                qc_types = c("SPL", "BQC", "TQC", "LTR"), 
-                #include_feature_filter = example_species,
-                #y_min = 0.00,
-                #y_max = 0.9,
-                #plot_range = c(0, 910), 
-                show_reference_lines = TRUE,
-                ref_qc_types = "SPL",
-                reference_fill_color = "#111111",
-                reference_k_sd = 3,
-                show_trend = TRUE,
-                point_size = 1,
-                base_font_size = 6,
-                cols_page = 2,
-                rows_page = 3,
-                cap_outliers = FALSE,
-                reference_sd_shade = FALSE,
-                show_progress = FALSE,
-                #batch_zebra_stripe = TRUE, 
-                output_pdf = TRUE,
-                path = "../output/Dataset3_runscatter_rawConc_all.pdf")
+plot_runscatter(
+  mexp,
+  variable = "conc_raw",
+  #include_feature_filter = "ISTD",
+  qc_types = c("SPL", "BQC", "TQC", "LTR"),
+  #include_feature_filter = example_species,
+  #y_min = 0.00,
+  #y_max = 0.9,
+  #plot_range = c(0, 910),
+  show_reference_lines = TRUE,
+  ref_qc_types = "SPL",
+  reference_fill_color = "#111111", reference_k_sd = 3, show_trend = TRUE,
+  point_size = 1, font_base_size = 6, cols_page = 2, rows_page = 3,
+  cap_outliers = FALSE, reference_sd_shade = FALSE, show_progress = FALSE,
+  #batch_zebra_stripe = TRUE,
+  multithreading = FALSE, # set TRUE (needs mirai, carrier, qpdf) to parallelise PDF export across mirai daemons
+  output_pdf = FALSE,
+  path = "../output/Dataset3_runscatter_rawConc_all.pdf")
 
-plot_runscatter(mexp, variable = "conc", 
-                #include_feature_filter = "ISTD", 
-                qc_types = c("SPL", "BQC", "TQC", "LTR"), 
-                #include_feature_filter = example_species,
-                #y_min = 0.00,
-                #y_max = 0.9,
-                #plot_range = c(0, 910), 
-                show_reference_lines = TRUE,
-                ref_qc_types = "SPL",
-                reference_fill_color = "#111111",
-                reference_k_sd = 3,
-                show_trend = TRUE,
-                point_size = 1,
-                base_font_size = 6,
-                cols_page = 2,
-                rows_page = 3,
-                cap_outliers = FALSE,
-                show_progress = FALSE,
-                reference_sd_shade = FALSE,
-                #batch_zebra_stripe = TRUE, 
-                output_pdf = TRUE,
-                path = "../output/Dataset3_runscatter_FinalConc_all.pdf")
+plot_runscatter(
+  mexp,
+  variable = "conc",
+  #include_feature_filter = "ISTD",
+  qc_types = c("SPL", "BQC", "TQC", "LTR"),
+  #include_feature_filter = example_species,
+  #y_min = 0.00,
+  #y_max = 0.9,
+  #plot_range = c(0, 910),
+  show_reference_lines = TRUE,
+  ref_qc_types = "SPL",
+  reference_fill_color = "#111111", reference_k_sd = 3, show_trend = TRUE,
+  point_size = 1, font_base_size = 6, cols_page = 2, rows_page = 3,
+  cap_outliers = FALSE, show_progress = FALSE, reference_sd_shade = FALSE,
+  #batch_zebra_stripe = TRUE,
+  multithreading = FALSE, # set TRUE (needs mirai, carrier, qpdf) to parallelise PDF export across mirai daemons
+  output_pdf = FALSE,
+  path = "../output/Dataset3_runscatter_FinalConc_all.pdf")
 
 
 # QC of normalization and drift/batch correction
@@ -454,12 +402,10 @@ mrmhub::plot_qcmetrics_comparison(
   equality_line = TRUE,
   facet_by_class = TRUE,
   point_size = 2,
-#  point_color = "#6da7de",
-#  point_fill = "#6da7de",
   font_base_size = 5,
   x_lim = c(0, 25),
-  y_lim = c(-15, 15))
-
+  y_lim = c(-15, 15)) 
+ggsave("../output/Dataset3_qcmetrics_comparison.pdf")
 
 # Effect of feature intensity on technical variability
 mrmhub::plot_qcmetrics_comparison(
@@ -486,42 +432,37 @@ mrmhub::plot_qcmetrics_comparison(
 
 
 # Response curves
-sel_species <- c("PC 26:0 (ISTD)", "SM 34:1", "PC 34:2", "CE 18:2", "TG 50:1 [NL-16:0]", "CE 20:4", "LPC 18:1")
+sel_species <- c(
+  "PC 26:0 (ISTD)",
+  "SM 34:1", "PC 34:2", "CE 18:2", "TG 50:1 [NL-16:0]", "CE 20:4",
+  "LPC 18:1")
 plot_responsecurves(
   data = mexp,
-  variable = "intensity", 
-  max_regression_value = 100, 
+  variable = "intensity",
+  max_regression_value = 100,
   filter_data = FALSE,
-  font_base_size = 6, 
-  line_width = 0.5, point_size = 1.2,
+  font_base_size = 6,
+  line_width = 0.5,
+  point_size = 1.2,
   include_feature_filter = sel_species,
-  output_pdf = FALSE, path = "response-curves-dataset3.pdf",
+  output_pdf = FALSE,
   show_progress = FALSE,
-  cols_page = 3, 
+  cols_page = 3,
   rows_page = 3,
-  return_plots = TRUE)[[1]]+
-  theme(panel.grid.minor = element_blank(),
-        legend.position = "inside",
-        legend.direction = "horizontal", 
-        legend.text = element_text(size = 6*0.6),
-        legend.title = element_blank(),
-        legend.key.size = unit(6 *0.6, "pt"),
-        strip.text = element_text(size = 6),
-        legend.position.inside = c(0.9, 0.01))
-
-
-
+  return_plots = TRUE,
+  legend_position = "none",
+  show_legend_title = FALSE
+)
+ggsave("../output/Dataset3_responsecurves_selspecies.pdf")
 
 # Generate pdf files of response curves
 plot_responsecurves(
   data = mexp,
   variable = "intensity", max_regression_value = 100, 
   filter_data = FALSE,font_base_size = 6, line_width = 0.5, point_size = 1.2,
-  output_pdf = TRUE, path = "../output/dataset3-response-curves.pdf",show_progress = FALSE,
+  output_pdf = FALSE, path = "../output/dataset3-response-curves.pdf",show_progress = FALSE,
   cols_page = 6, rows_page = 5,
   return_plots = FALSE)
-
-
 
 
 # Feature filter
@@ -548,25 +489,42 @@ mexp  <- filter_features_qc(
 table(mexp@metrics_qc$feature_class)
 
 # Results of feature filter
- plot_qc_summary_byclass(mexp) + 
-  theme(
-    strip.text = ggplot2::element_text(size = 5),
-    #aspect.ratio = 0.9,
-    legend.position = "inside",
-    axis.text = element_text(size = 7),
-    axis.title = element_text(size = 8, face = "plain"),
-    axis.text.y.right =  element_text(size = 7, face = "plain"),
-    legend.direction = "vertical", 
-    legend.text = element_text(size = 8*0.7),
-    legend.title = element_blank(),
-    legend.key.size = unit(8 *0.7, "pt"),
-    legend.position.inside = c(0.77, 0.27)
-  )  
+# `plot_qc_summary_byclass()` draws one x-axis level per feature class in the QC metrics
+# but only summarizes non-ISTD/non-qualifier features. A class made up solely of such
+# features is empty in the summary, so the axis has more breaks than labels — which aborts
+# the secondary axis under ggplot2 >= 4.0. Drop those phantom classes from a copy first.
+mexp_byclass <- mexp
+.keep_classes <- mexp@metrics_qc |>
+  dplyr::filter(valid_feature, in_data, pass_istd, pass_qualifier) |>
+  dplyr::pull(feature_class) |>
+  unique()
+mexp_byclass@metrics_qc <- dplyr::filter(
+  mexp@metrics_qc,
+  feature_class %in% .keep_classes)
+
+plot_qc_summary_byclass(
+  mexp_byclass,
+  font_base_size = 8, legend_position = c(0.77, 0.27), legend_size = 0.7,
+  show_legend_title = FALSE)
 
 
 
 plot_qc_summary_overall(mexp) 
 
+# PCA plots of the final dataset
+plot_pca(
+  data = mexp,
+  variable = "conc",
+  filter_data = TRUE,
+  pca_dims = c(1, 2),
+  labels_column = "analysis_order",
+  labels_threshold_mad = 5,
+  qc_types = c("BQC", "TQC", "LTR", "NIST", "SPL"),
+  ellipse_variable = "qc_type",
+  log_transform = TRUE, point_size = 0.7, point_alpha = 0.7,
+  font_base_size = 8, ellipse_alpha = 0.3,
+  include_istd = FALSE,
+  show_labels = TRUE, label_font_size = 1.5)
 
 # Lipidome profile
 plot_abundanceprofile(
@@ -578,16 +536,25 @@ plot_abundanceprofile(
   #x_lim = c(-6, 2),
   x_label = NA,
   feature_map = "lipidomics")
+ggsave("../output/Dataset3_abundanceprofile.pdf")
 
 
 # Export final dataset
 save_dataset_csv(
-  data = mexp, 
-  path = "../output/sperfect_UNFILTERED_RAW-feature_conc_uM_20250518a.csv",
-  variable = "conc", 
-  qc_types = "SPL", 
+  data = mexp,
+  path = "../output/Dataset3_UNFILTERED-feature_conc_uM.csv",
+  variable = "conc",
+  qc_types = "SPL",
   include_qualifier = FALSE,
   filter_data = FALSE)
+
+save_dataset_csv(
+  data = mexp,
+  path = "../output/Dataset3_FILTERED-feature_conc_uM.csv",
+  variable = "conc",
+  qc_types = "SPL",
+  include_qualifier = FALSE,
+  filter_data = TRUE)
 
 
 # End of MRMhub workflow
@@ -626,7 +593,6 @@ inputFiles = list(
     name = "Dataset3_MRMhub-Integrator_20251010.csv",
     location = paste0("file://", data_path),
     fileFormat = rmzqc::MzQCcvParameter$new(
-      # TO-DO: discuss accession number
       accession = "MS:1001040",
       name = "intermediate analysis format"
     )
@@ -711,7 +677,7 @@ controlled_vocabularies <- list(
   rmzqc::MzQCcontrolledVocabulary$new(
     name = "Proteomics Standards Initiative Mass Spectrometry Ontology",
     uri = "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.1.258/psi-ms.obo",
-    version = "4.1.258"
+    version = "4.1.258" # change after update of terms
   )
 )
 
@@ -740,6 +706,12 @@ cat("Yay! The mzQC file has been successfully written to:", output_file, "\n")
 
 
 # Histograms
+theme_qc_large <- theme_qc +
+  theme(
+    plot.title = element_text(size = 12),
+    axis.title = element_text(size = 10),
+    axis.text = element_text(size = 10)
+  )
 
 # BQC CV
 p1 <- ggplot(feature_qc_metrics, aes(x = conc_cv_bqc)) +
@@ -753,7 +725,7 @@ p1 <- ggplot(feature_qc_metrics, aes(x = conc_cv_bqc)) +
     limits = c(0, 170)
   ) +
   labs(
-    title = "BQC Coefficient of Variation",
+    title = "Batch QC Coefficient of Variation",
     x = "Concentration CV (%)",
     y = "Number of features"
   ) +
@@ -771,7 +743,7 @@ p2 <- ggplot(feature_qc_metrics, aes(x = conc_cv_tqc)) +
     limits = c(0, 170)
   ) +
   labs(
-    title = "TQC Coefficient of Variation",
+    title = "Technical QC Coefficient of Variation",
     x = "Concentration CV (%)",
     y = "Number of features"
   ) +
@@ -800,15 +772,26 @@ p4 <- ggplot(feature_qc_metrics, aes(x = r2_rqc_B)) +
     color = "white"
   ) +
   labs(
-    title = expression(R^2),
+    title = "Coefficient of Determination",
     x = expression(R^2),
     y = "Number of features"
   ) +
   theme_qc
 
-# Arrange in a grid
-(p1 | p2) / (p3 | p4)
+p1 <- p1 + theme_qc_large
+p2 <- p2 + theme_qc_large
+p3 <- p3 + theme_qc_large
+p4 <- p4 + theme_qc_large
 
+# Arrange in a grid
+p_histograms <- (p1 | p2) / (p3 | p4)
+show(p_histograms)
+
+# Save histogram
+ggsave(
+  "../output/histograms.pdf",
+  plot = p_histograms
+)
 
 
 # Additional calculations
