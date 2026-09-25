@@ -8,7 +8,7 @@ The aim of this use case is to demonstrate how lipidomics-specific QC informatio
 
 ## Workflow Dataset
 
-The lipidomics workflow is adapted from the official [MRMhub Dataset 3 workflow](https://slinghub.github.io/MRMhub-workflows/Dataset3.html0) developed by Bo Burla, Gui Shou Teo and Hyungwon Choi at the Singapore Lipidomics Incubator (SLING). The code has not been changed except some minor changes in the plot layout and export and has been fully included in this use case to demonstrate the applicability of mzQC export without needing prior changes or manipulation of the workflow. In case you are facing any issues within the workflow prior the mzQC file export, please report to the authors of the MRMhub workflow.
+The lipidomics workflow is adapted from the official [MRMhub Dataset 3 workflow](https://slinghub.github.io/MRMhub-workflows/Dataset3.html) developed by Bo Burla, Gui Shou Teo and Hyungwon Choi at the Singapore Lipidomics Incubator (SLING). The code has not been changed except some minor changes in the plot layout and export and has been fully included in this use case to demonstrate the applicability of mzQC export without needing prior changes or manipulation of the workflow. In case you are facing any issues within the workflow prior the mzQC file export, please report to the authors of the MRMhub workflow.
 
 The original dataset containing the raw mass spectrometry files is available from the [MRMhub-data Zenodo repository](https://zenodo.org/records/15370294). The complete Dataset 3 archive is not directly used as input in this repository, as the input data used in the workflow is available in the following dataset after the peak integration using the MRMhub-INTEGRATOR.
 
