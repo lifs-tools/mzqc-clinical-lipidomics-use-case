@@ -21,10 +21,10 @@ here("script")
 # This Use Case goes through the Workflow from MRMhub for Dataset3: https://slinghub.github.io/mrmhub-workflows/Dataset3.html#peak-picking-qc
 # Additionally exports QCs to mzQC files to prove the usability of the file format for a Lipidomics Use Case
 
-data_path <- "../data/Dataset3_MRMhub-Integrator_20251010.csv"
+data_path <- "../input/Dataset3_MRMhub-Integrator_20251010.csv"
 mexp <- MRMhubExperiment()
 mexp <- import_data_mrmhub(mexp, data_path, import_metadata = TRUE)       
-file_path <- "../data/Dataset3_Metadata_20251010.xlsm"
+file_path <- "../input/Dataset3_Metadata_20251010.xlsm"
 mexp <- import_metadata_msorganiser(mexp, file_path, ignore_warnings = TRUE)
 
 # Analytical design and timeline
@@ -729,7 +729,7 @@ p1 <- ggplot(feature_qc_metrics, aes(x = conc_cv_bqc)) +
     x = "Concentration CV (%)",
     y = "Number of features"
   ) +
-  theme_qc
+  theme_qc_large
 
 # TQC CV
 p2 <- ggplot(feature_qc_metrics, aes(x = conc_cv_tqc)) +
@@ -747,7 +747,7 @@ p2 <- ggplot(feature_qc_metrics, aes(x = conc_cv_tqc)) +
     x = "Concentration CV (%)",
     y = "Number of features"
   ) +
-  theme_qc
+  theme_qc_large
 
 # Signal-to-Blank
 p3 <- ggplot(feature_qc_metrics, aes(x = sb_ratio_pblk)) +
@@ -762,7 +762,7 @@ p3 <- ggplot(feature_qc_metrics, aes(x = sb_ratio_pblk)) +
     x = "Median Signal-to-Blank Ratio (log10)",
     y = "Number of features"
   ) +
-  theme_qc
+  theme_qc_large
 
 # R²
 p4 <- ggplot(feature_qc_metrics, aes(x = r2_rqc_B)) +
@@ -776,12 +776,8 @@ p4 <- ggplot(feature_qc_metrics, aes(x = r2_rqc_B)) +
     x = expression(R^2),
     y = "Number of features"
   ) +
-  theme_qc
+  theme_qc_large
 
-p1 <- p1 + theme_qc_large
-p2 <- p2 + theme_qc_large
-p3 <- p3 + theme_qc_large
-p4 <- p4 + theme_qc_large
 
 # Arrange in a grid
 p_histograms <- (p1 | p2) / (p3 | p4)
