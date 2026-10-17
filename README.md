@@ -137,8 +137,7 @@ Several lipidomics-specific QC terms required for the exported metrics were iden
 
 ## Citation
 
-Burla B, Teo G, Choi H (2026). *mrmhub: Small Molecule Mass Spectrometry Data Processing, Quality Control, and Reporting*. R package version 0.9.9.
-
+Burla, B., Teo, G.S., Benke, P.I. et al. MRMhub: a scalable data-processing framework for large-scale targeted metabolomics. Nat Metab (2026). https://doi.org/10.1038/s42255-026-01629-2
 - [MRMhub repository](https://github.com/SLINGhub/MRMhub)
 - [MRMhub Dataset 3 Zenodo record](https://zenodo.org/records/15370294)
 - [mzQC specification](https://hupo-psi.github.io/mzQC/)
