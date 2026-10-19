@@ -2,48 +2,54 @@
 
 This repository demonstrates the export of quality control (QC) metrics from a targeted lipidomics workflow based on the MRMhub R package into the mzQC format.
 
-The aim of this use case is to demonstrate how lipidomics-specific QC information generated during a quantitative mass spectrometry workflow can be represented in a standardized, machine-readable format. The exported mzQC file contains feature-level QC metrics together with standardized metadata describing the input data, analysis software, controlled vocabularies, and metric definitions required by the mzQC specification while preserving the association between each metric and the corresponding lipid species.
+The aim of this use case is to demonstrate how lipidomics-specific QC information generated during a quantitative mass spectrometry workflow can be represented in a standardized, machine-readable format. The exported mzQC file contains feature-level QC metrics together with standardized metadata describing the input data, analysis software, controlled vocabularies, and metric definitions required by the mzQC specification, while preserving the association between each metric and the corresponding lipid species.
 
 ---
 
-## Workflow Dataset
+## Input Data
 
-The lipidomics workflow is adapted from the official [MRMhub Dataset 3 workflow](https://slinghub.github.io/MRMhub-workflows/Dataset3.html) developed by Bo Burla, Gui Shou Teo and Hyungwon Choi at the Singapore Lipidomics Incubator (SLING). The code has not been changed except some minor changes in the plot layout and export and has been fully included in this use case to demonstrate the applicability of mzQC export without needing prior changes or manipulation of the workflow. In case you are facing any issues within the workflow prior the mzQC file export, please report to the authors of the MRMhub workflow.
+The lipidomics workflow is adapted from the official [MRMhub Dataset 3 workflow](https://slinghub.github.io/MRMhub-workflows/Dataset3.html), developed by Bo Burla, Gui Shou Teo, and Hyungwon Choi at the Singapore Lipidomics Incubator (SLING).
 
-The original dataset containing the raw mass spectrometry files is available from the [MRMhub-data Zenodo repository](https://zenodo.org/records/15370294). The complete Dataset 3 archive is not directly used as input in this repository, as the input data used in the workflow is available in the following dataset after the peak integration using the MRMhub-INTEGRATOR.
+The original workflow has been adapted to support mzQC export, with minor changes to plot layout and output handling.
 
-**Note:**  
-The input data are not included within this repository because of their size. The required workflow input files are provided in the `mrmhub-workflows.zip` archive from Zenodo.
+### Dataset Download
 
-Download the workflow input files:
+The original Dataset 3 archive containing the raw mass spectrometry data is available from the [MRMhub Dataset 3 Zenodo record](https://zenodo.org/records/15370294).
 
-https://zenodo.org/records/15370294
+This use case uses input data generated after peak integration with MRMhub-INTEGRATOR. The required input files are not included in this repository because of their size.
 
-or directly:
+1. Download [`mrmhub-workflows.zip`](https://zenodo.org/records/15370294/files/mrmhub-workflows.zip?download=1) from Zenodo.
+2. Extract the archive.
+3. Copy the following files from `mrmhub-workflows/data/dataset-3/data/` into the repository's `input/` directory:
+   - `Dataset3_MRMhub-Integrator_20251010.csv`
+   - `Dataset3_Metadata_20251010.xlsm`
 
-[Download mrmhub-workflows.zip](https://zenodo.org/records/15370294/files/mrmhub-workflows.zip?download=1)
+### Original Workflow Reference
 
-Extract the archive and copy the following files into the `data/` directory:
+Burla, B., Teo, G.S., Benke, P.I. et al. MRMhub: a scalable data-processing framework for large-scale targeted metabolomics. Nat Metab (2026). https://doi.org/10.1038/s42255-026-01629-2
 
-* `/mrmhub-workflows/data/dataset-3/data/Dataset3_MRMhub-Integrator_20251010.csv`
-* `/mrmhub-workflows/data/dataset-3/data/Dataset3_Metadata_20251010.xlsm`
+[MRMhub-workflows GitHub repository](https://github.com/SLINGhub/MRMhub-workflows)
 
-The repository structure should then be:
+---
 
-```text
-mzqc-clinical-lipidomics-use-case/
-├── data/
-│   ├── Dataset3_MRMhub-Integrator_20251010.csv
-│   └── Dataset3_Metadata_20251010.xlsm
-├── script/
-└── output/
-```
+## Requirements and Setup
 
-The workflow is based on:
+The workflow is implemented in R. Package dependencies are managed using [`renv`](https://github.com/rstudio/renv) to support reproducibility. The `script/renv.lock` file records the R package versions and their sources.
 
-Burla B, Teo G, Choi H (2026). *mrmhub: Small Molecule Mass Spectrometry Data Processing, Quality Control, and Reporting*. R package version 0.9.9.
+1. Install R from [CRAN](https://cran.r-project.org/).
+2. Download the required input files as described above.
+3. Open an R session in the `script/` directory.
+4. Restore the package environment:
 
-https://github.com/SLINGhub/MRMhub
+   ```r
+   renv::restore()
+   ```
+
+5. Run the analysis script:
+
+   ```r
+   source("useCaseLipidomics.R")
+   ```
 
 ---
 
@@ -51,38 +57,31 @@ https://github.com/SLINGhub/MRMhub
 
 ### Overview of mzQC
 
-The [mzQC format](https://hupo-psi.github.io/mzQC/) is a standardized JSON-based format developed by the HUPO-PSI Mass Spectrometry Quality Control working group for storing and exchanging quality-related information from mass spectrometry experiments. Unlike raw data formats, mzQC does not store complete measurements or quantitative datasets. Instead, it provides a structured representation of QC information, including numerical quality metrics together with metadata describing their meaning and context. This enables QC information generated by different workflows and software tools to be exchanged, compared, and reused independently of the original processing environment. In mzQC, quality metrics can be associated with:
+The [mzQC format](https://hupo-psi.github.io/mzQC/) is a standardized, JSON-based format developed by the HUPO-PSI Mass Spectrometry Quality Control working group for storing and exchanging quality-related information from mass spectrometry experiments.
 
-* individual analytical runs (`runQualities`)
-* collections of runs representing an experiment, batch, or complete dataset (`setQualities`)
+Unlike raw data formats, mzQC provides a structured representation of QC information, including numerical quality metrics and metadata describing their meaning and context.
 
-Since the metrics exported in this repository describe the analytical performance of individual lipid species across multiple QC measurements, they are stored as feature-level metrics within a `setQuality` object. Each exported value is linked to the corresponding lipid species using the feature identifier generated by MRMhub.
-
----
+Since the metrics exported in this repository describe the analytical performance of individual lipid species across multiple QC measurements, they are represented as feature-level metrics within a dataset-level quality object. Each exported value is linked to the corresponding lipid species using the feature identifier generated by MRMhub.
 
 ### Selected QC Metrics
 
-The exported mzQC file contains four feature-level quality metrics generated during the MRMhub workflow:
+The exported mzQC file contains four groups of feature-level quality metrics generated during the MRMhub workflow:
 
 1. **Pooled batch quality control concentration coefficient of variation (BQC CV)**
 2. **Pooled technical quality control concentration coefficient of variation (TQC CV)**
 3. **Median-based signal-to-blank ratio**
-4. **Response curve linearity** containing **Response Curve R², Normalized Slope and Normalized Intercept**
+4. **Response curve linearity**, including Response Curve R², Normalized Slope, and Normalized Intercept.
 
-These metrics describe complementary aspects of analytical performance:
-
-| Metric | Represents QC |
+| Metric | QC aspect represented |
 |---|---|
 | BQC CV | Quantitative reproducibility across pooled batch QC samples |
 | TQC CV | Technical instrument reproducibility across pooled technical QC samples |
-| Median-based Signal-to-Blank Ratio | Background contribution and analyte detectability |
+| Median-based signal-to-blank ratio | Background contribution and analyte detectability |
 | Response Curve R² | Linearity across the response QC dilution series |
-| Normalized Slope | Relative increase in signal across the response QC dilution series |
-| Normalized Intercept | Calibration offset / Background signal from the response QC response curve |
+| Normalized Slope | Relative change in signal across the response QC dilution series |
+| Normalized Intercept | Intercept of the fitted response curve |
 
----
-
-### QC Metrics Generation in MRMhub
+### QC Metric Generation in MRMhub
 
 The QC metrics exported in this repository were generated during the MRMhub workflow using:
 
@@ -90,71 +89,56 @@ The QC metrics exported in this repository were generated during the MRMhub work
 calc_qc_metrics()
 ```
 
-In this use case, the QC metrics were exported after the main processing steps of the workflow, including:
+The metrics were exported after the main processing steps, including normalization, isotope/interference correction, ISTD-based quantification, drift correction, and batch correction.
 
-* normalization
-* isotope/interference correction
-* ISTD-based quantification
-* drift correction
-* batch correction
-
-The resulting QC values are stored internally within the `metrics_qc` slot of the MRMhub experiment object. A subset of feature-level QC metrics is selected from this object and converted into mzQC quality metric objects for export. The mzQC export does not modify the QC metric calculation but provides a standardized representation of the generated quality information.
-
----
+The resulting QC values are stored in the `metrics_qc` slot of the MRMhub experiment object. A subset of feature-level metrics is selected and converted into mzQC quality metric objects for export. The export does not modify the underlying QC metric calculations.
 
 ### mzQC Representation
 
-The generated mzQC document follows the mzQC 1.0 specification and contains:
+The generated mzQC document follows the mzQC 1.0 specification and contains input file metadata, analysis software metadata, controlled vocabulary references, and feature-level quality metrics.
 
-* input file metadata
-* analysis software metadata
-* controlled vocabulary references
-* feature-level quality metrics
-* dataset-level (`setQuality`) quality information
-
-Each QC metric is stored as an individual mzQC quality metric object.
-
-The metric definition describes the meaning of the metric, while the `value` field contains parallel arrays of feature identifiers and their corresponding QC values.
-
+Each QC metric is stored as an individual mzQC quality metric object. Feature identifiers and their corresponding QC values are associated by their positions in parallel arrays.
 
 Example:
 
 ```json
-
 {
-"name": "pooled batch quality control concentration coefficient of variation",
-"value": {
-  "feature_id": ["AcylCarnitine 12:0", "AcylCarnitine 13:0", "AcylCarnitine 14:0"], 
-  "value": [18.4324, 22.4772, 17.8255]
-    }
+  "name": "pooled batch quality control concentration coefficient of variation",
+  "value": {
+    "feature_id": [
+      "AcylCarnitine 12:0",
+      "AcylCarnitine 13:0",
+      "AcylCarnitine 14:0"
+    ],
+    "value": [
+      18.4324,
+      22.4772,
+      17.8255
+    ]
+  }
 }
-
 ```
 
-Each element of the `feature_id` array corresponds to the QC value at the same position in the `value` array, preserving the relationship between lipid species and their associated quality metrics without duplicating metadata.
+This example illustrates the association between feature identifiers and their corresponding QC values.
 
 ---
 
 ## mzQC Export Implementation
 
-The mzQC export is generated using the R package:
-
-https://github.com/MS-Quality-hub/rmzqc
-
-The export workflow consists of:
+The mzQC export is generated using the R package [`rmzqc`](https://github.com/MS-Quality-hub/rmzqc).
 
 The PSI Mass Spectrometry Controlled Vocabulary (PSI-MS CV) is used for metric annotation:
 
-https://github.com/HUPO-PSI/psi-ms-CV/blob/master/psi-ms.obo
+[PSI-MS Controlled Vocabulary](https://github.com/HUPO-PSI/psi-ms-CV/blob/master/psi-ms.obo)
 
-During development of this use case, several lipidomics-specific QC terms required for the exported metrics were identified as currently unavailable in the PSI-MS CV. These terms may be proposed for inclusion in future releases of the controlled vocabulary.
+Several lipidomics-specific QC terms required for the exported metrics were identified as currently unavailable in the PSI-MS CV during development of this use case. These terms may be proposed for inclusion in future releases of the controlled vocabulary.
 
 ---
 
-## Repository Structure
+## Citation
 
-```text
-data/       - input datasets and metadata (download separately)
-script/     - complete MRMhub workflow including mzQC export
-output/     - generated mzQC files and workflow results
-```
+Burla, B., Teo, G.S., Benke, P.I. et al. MRMhub: a scalable data-processing framework for large-scale targeted metabolomics. Nat Metab (2026). https://doi.org/10.1038/s42255-026-01629-2
+- [MRMhub repository](https://github.com/SLINGhub/MRMhub)
+- [MRMhub Dataset 3 Zenodo record](https://zenodo.org/records/15370294)
+- [mzQC specification](https://hupo-psi.github.io/mzQC/)
+- [rmzqc R package](https://github.com/MS-Quality-hub/rmzqc)
