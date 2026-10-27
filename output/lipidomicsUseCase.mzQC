@@ -1,7 +1,7 @@
 {
   "mzQC": {
     "version": "1.0.0",
-    "creationDate": "2026-10-27T11:15:43Z",
+    "creationDate": "2026-10-27T12:04:18Z",
     "contactName": "Franziska Nicolaus",
     "contactAddress": "f.nicolaus@fz-juelich.de",
     "description": "MRMhub lipidomics workflow mzQC export containing pooled QC coefficients of variation of concentration, signal-to-blank ratios, and response curve linearity metrics.",
@@ -12,7 +12,7 @@
           "inputFiles": [
             {
               "name": "Dataset3_MRMhub-Integrator_20251010.csv",
-              "location": "file://../input/Dataset3_MRMhub-Integrator_20251010.csv",
+              "location": "file:///Users/franziskanicolaus/Documents/mzQC/mzqc-clinical-lipidomics-use-case/input/Dataset3_MRMhub-Integrator_20251010.csv",
               "fileFormat": {
                 "accession": "MS:1001040",
                 "name": "intermediate analysis format"
@@ -69,7 +69,7 @@
     "controlledVocabularies": [
       {
         "name": "Proteomics Standards Initiative Mass Spectrometry Ontology",
-        "uri": "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.1.258/psi-ms.obo",
+        "uri": "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.2.12/psi-ms.obo",
         "version": "4.2.12"
       }
     ]

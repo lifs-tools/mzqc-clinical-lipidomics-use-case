@@ -584,11 +584,14 @@ feature_qc_metrics <- mexp@metrics_qc %>%
     y0norm_rqc_B
   )
 
+# Input Location 
+input_location <- "../input/Dataset3_MRMhub-Integrator_20251010.csv"
+
 # Define input file metadata
 inputFiles = list(
   rmzqc::MzQCinputFile$new(
     name = "Dataset3_MRMhub-Integrator_20251010.csv",
-    location = paste0("file://", data_path),
+    location = paste0("file://", input_location),
     fileFormat = rmzqc::MzQCcvParameter$new(
       accession = "MS:1001040",
       name = "intermediate analysis format"
@@ -671,7 +674,7 @@ set_quality <- rmzqc::MzQCsetQuality$new(
 controlled_vocabularies <- list(
   rmzqc::MzQCcontrolledVocabulary$new(
     name = "Proteomics Standards Initiative Mass Spectrometry Ontology",
-    uri = "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.1.258/psi-ms.obo",
+    uri = "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.2.12/psi-ms.obo",
     version = "4.2.12"
   )
 )
@@ -687,13 +690,13 @@ mzqc_obj <- rmzqc::MzQCmzQC$new(
   controlledVocabularies = controlled_vocabularies
 )
 
-output_file <- file.path(output, "lipidomicsUseCase.mzQC")
+output_file <- here::here("output", "lipidomicsUseCase.mzQC")
 
 rmzqc::writeMZQC(
   filepath = output_file,
   mzqc = mzqc_obj
 )
-cat("Yay! The mzQC file has been successfully written to:", output_file, "\n")
+cat("The mzQC file has been successfully written to:", output_file, "\n")
 
 
 
