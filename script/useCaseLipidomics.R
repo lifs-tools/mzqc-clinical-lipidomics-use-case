@@ -14,18 +14,19 @@ library(tidyr)
 library(patchwork)
 library(here)
 
-here("script")
+here::here("script")
 
 # MzQC - Lipidomics Use Case
 # Dataset of MRMhub provided by SLING available at zenodo: https://zenodo.org/records/15370294 (Dataset: MRMhub-Dataset3.zip; Input files for this workflow: mrmhub-workflows)
 # This Use Case goes through the Workflow from MRMhub for Dataset3: https://slinghub.github.io/mrmhub-workflows/Dataset3.html#peak-picking-qc
 # Additionally exports QCs to mzQC files to prove the usability of the file format for a Lipidomics Use Case
 
-data_path <- "../input/Dataset3_MRMhub-Integrator_20251010.csv"
+data_path <- here::here("input", "Dataset3_MRMhub-Integrator_20251010.csv")
 mexp <- MRMhubExperiment()
 mexp <- import_data_mrmhub(mexp, data_path, import_metadata = TRUE)       
-file_path <- "../input/Dataset3_Metadata_20251010.xlsm"
+file_path <- here::here("input", "Dataset3_Metadata_20251010.xlsm")
 mexp <- import_metadata_msorganiser(mexp, file_path, ignore_warnings = TRUE)
+output <- here::here("output")
 
 # Analytical design and timeline
 plot_runsequence(
@@ -39,7 +40,7 @@ plot_runsequence(
 ) +
   theme(plot.title = element_text(size = 5))
 
-ggsave("../output/Dataset3_runsequence.pdf")
+ggsave(file.path(output, "Dataset3_runsequence.pdf"))
 
 # Overview Chromatographic Separation
 plot_abundanceprofile(
@@ -90,8 +91,8 @@ plot_runscatter(
   include_feature_filter = "IS",
   #y_min = 0.00, y_max = 0.15,
   #plot_range = c(0, 910),
-  point_size = .2, point_border_width = 0.1, point_alpha = .7,
-  font_base_size = 4, cols_page = 3, rows_page = 11, show_progress = FALSE,
+  point_size = .2, point_border_width = 0.1,
+  cols_page = 3, rows_page = 11, show_progress = FALSE,
   cap_outliers = TRUE)
 
 # Check for potential systematic outliers in endogenous analytes
@@ -144,8 +145,8 @@ plot_runscatter(
   include_feature_filter = "IS",
   #y_min = 0.00, y_max = 0.15,
   #plot_range = c(0, 910),
-  point_size = .2, point_border_width = 0.1, point_alpha = .7,
-  font_base_size = 4, cols_page = 3, rows_page = 11, show_progress = FALSE,
+  point_size = .2, point_border_width = 0.1,
+  cols_page = 3, rows_page = 11, show_progress = FALSE,
   cap_outliers = TRUE)
 
 
@@ -191,8 +192,7 @@ plot_pca(
   log_transform = TRUE, shared_labeltext_hide = "_MS-5", point_size = 0.7,
   point_alpha = 0.7, font_base_size = 8, ellipse_alpha = 0.3,
   include_istd = FALSE,
-  show_labels = TRUE, label_font_size = 1.5,
-  legend_position = "right", legend_size = 0.7)
+  show_labels = TRUE, label_font_size = 1.5)
 
 
 # Loading
@@ -230,7 +230,6 @@ plot_matrixeffects(
   exclude_feature_filter = "95|CL|25|d17\\:0|C1P|H2O",
   y_lim = c(50, 150), point_alpha = 0.05, box_alpha = 0.3, point_size = 0.2,
   box_linewidth = 0.2, font_base_size = 7, min_median_value = 1000)
-
 
 
 # Isotope correction
@@ -288,7 +287,7 @@ plot_runscatter(
   show_reference_lines = TRUE,
   ref_qc_types = "SPL",
   reference_fill_color = "#111111", reference_k_sd = 3, point_size = 0.5,
-  point_border_width = 0.1, font_base_size = 6, cols_page = 2,
+  point_border_width = 0.1, cols_page = 2,
   rows_page = 6, cap_outliers = TRUE, reference_sd_shade = FALSE,
   #batch_zebra_stripe = TRUE,
   output_pdf = FALSE)
@@ -324,7 +323,7 @@ plot_runscatter(
   show_reference_lines = TRUE,
   ref_qc_types = "SPL",
   reference_fill_color = "#111111", reference_k_sd = 3, point_size = 0.5,
-  point_border_width = 0.1, font_base_size = 6, cols_page = 2,
+  point_border_width = 0.1, cols_page = 2,
   rows_page = 6, cap_outliers = TRUE, reference_sd_shade = FALSE,
   #batch_zebra_stripe = TRUE,
   output_pdf = FALSE)
@@ -345,12 +344,14 @@ plot_runscatter(
   show_reference_lines = TRUE,
   ref_qc_types = "SPL",
   reference_fill_color = "#111111", reference_k_sd = 3, show_trend = TRUE,
-  point_size = 1, font_base_size = 6, cols_page = 2, rows_page = 3,
+  point_size = 1, cols_page = 2, rows_page = 3,
   cap_outliers = FALSE, reference_sd_shade = FALSE, show_progress = FALSE,
   #batch_zebra_stripe = TRUE,
   multithreading = FALSE, # set TRUE (needs mirai, carrier, qpdf) to parallelise PDF export across mirai daemons
-  output_pdf = FALSE,
-  path = "../output/Dataset3_runscatter_rawConc_all.pdf")
+  output_pdf = TRUE,
+  path = file.path(output, "Dataset3_runscatter_rawConc_all.pdf")
+  )
+
 
 plot_runscatter(
   mexp,
@@ -364,12 +365,13 @@ plot_runscatter(
   show_reference_lines = TRUE,
   ref_qc_types = "SPL",
   reference_fill_color = "#111111", reference_k_sd = 3, show_trend = TRUE,
-  point_size = 1, font_base_size = 6, cols_page = 2, rows_page = 3,
+  point_size = 1, cols_page = 2, rows_page = 3,
   cap_outliers = FALSE, show_progress = FALSE, reference_sd_shade = FALSE,
   #batch_zebra_stripe = TRUE,
   multithreading = FALSE, # set TRUE (needs mirai, carrier, qpdf) to parallelise PDF export across mirai daemons
   output_pdf = FALSE,
-  path = "../output/Dataset3_runscatter_FinalConc_all.pdf")
+  path = file.path(output, "Dataset3_runscatter_FinalConc_all.pdf")
+  )
 
 
 # QC of normalization and drift/batch correction
@@ -405,7 +407,7 @@ mrmhub::plot_qcmetrics_comparison(
   font_base_size = 5,
   x_lim = c(0, 25),
   y_lim = c(-15, 15)) 
-ggsave("../output/Dataset3_qcmetrics_comparison.pdf")
+ggsave(file.path(output, "Dataset3_qcmetrics_comparison.pdf"))
 
 # Effect of feature intensity on technical variability
 mrmhub::plot_qcmetrics_comparison(
@@ -449,18 +451,16 @@ plot_responsecurves(
   show_progress = FALSE,
   cols_page = 3,
   rows_page = 3,
-  return_plots = TRUE,
-  legend_position = "none",
-  show_legend_title = FALSE
+  return_plots = TRUE
 )
-ggsave("../output/Dataset3_responsecurves_selspecies.pdf")
+ggsave(file.path(output, "Dataset3_responsecurves_selspecies.pdf"))
 
 # Generate pdf files of response curves
 plot_responsecurves(
   data = mexp,
   variable = "intensity", max_regression_value = 100, 
   filter_data = FALSE,font_base_size = 6, line_width = 0.5, point_size = 1.2,
-  output_pdf = FALSE, path = "../output/dataset3-response-curves.pdf",show_progress = FALSE,
+  output_pdf = FALSE, path = file.path(output, "dataset3-response-curves.pdf"), show_progress = FALSE,
   cols_page = 6, rows_page = 5,
   return_plots = FALSE)
 
@@ -504,8 +504,7 @@ mexp_byclass@metrics_qc <- dplyr::filter(
 
 plot_qc_summary_byclass(
   mexp_byclass,
-  font_base_size = 8, legend_position = c(0.77, 0.27), legend_size = 0.7,
-  show_legend_title = FALSE)
+  font_base_size = 8)
 
 
 
@@ -536,13 +535,13 @@ plot_abundanceprofile(
   #x_lim = c(-6, 2),
   x_label = NA,
   feature_map = "lipidomics")
-ggsave("../output/Dataset3_abundanceprofile.pdf")
+ggsave(file.path(output, "Dataset3_abundanceprofile.pdf"))
 
 
 # Export final dataset
 save_dataset_csv(
   data = mexp,
-  path = "../output/Dataset3_UNFILTERED-feature_conc_uM.csv",
+  path = file.path(output, "Dataset3_UNFILTERED-feature_conc_uM.csv"),
   variable = "conc",
   qc_types = "SPL",
   include_qualifier = FALSE,
@@ -550,7 +549,7 @@ save_dataset_csv(
 
 save_dataset_csv(
   data = mexp,
-  path = "../output/Dataset3_FILTERED-feature_conc_uM.csv",
+  path = file.path(output, "Dataset3_FILTERED-feature_conc_uM.csv"),
   variable = "conc",
   qc_types = "SPL",
   include_qualifier = FALSE,
@@ -566,7 +565,6 @@ save_dataset_csv(
 
 
 # Compute example QC metrics
-# TO-DO: Discuss and update the metrics selection and its terms
 
 # Prepare input
 feature_qc_metrics <- mexp@metrics_qc %>%
@@ -587,7 +585,6 @@ feature_qc_metrics <- mexp@metrics_qc %>%
   )
 
 # Define input file metadata
-# TO-DO: Discuss which term to include in the psi-ms-CV https://github.com/HUPO-PSI/psi-ms-CV/blob/master/psi-ms.obo
 inputFiles = list(
   rmzqc::MzQCinputFile$new(
     name = "Dataset3_MRMhub-Integrator_20251010.csv",
@@ -610,7 +607,7 @@ metadata <- rmzqc::MzQCmetadata$new(
       version = as.character(
         packageVersion("mrmhub")
       ),
-      accession = "MS:XXXXXXX", # to be defined
+      accession = "MS:1004039",
       uri = "https://github.com/SLINGhub/MRMhub/"
     )
   )
@@ -620,28 +617,27 @@ metadata <- rmzqc::MzQCmetadata$new(
 quality_metrics <- list(
   # BQC CV
   rmzqc::MzQCqualityMetric$new(
-    accession = "MS:XXXXXXX", # to be defined
-    name = "pooled batch quality control concentration coefficient of variation",
+    accession = "MS:4000256",
+    name = "pooled batch quality control coefficient of variation of concentration",
     value = list(
-      feature_id = feature_qc_metrics$feature_id,
-      coefficient_of_variation = feature_qc_metrics$conc_cv_bqc
+      targeted_feature_identifier = feature_qc_metrics$feature_id,
+      coefficient_of_variation_of_concentration = feature_qc_metrics$conc_cv_bqc
     )
   ),
   # TQC CV
   rmzqc::MzQCqualityMetric$new(
-    accession = "MS:XXXXXXX", # to be defined
-    name = "pooled technical quality control concentration coefficient of variation",
+    accession = "MS:4000257",
+    name = "pooled technical quality control coefficient of variation of concentration",
     value = list(
-      feature_id = feature_qc_metrics$feature_id,
-      coefficient_of_variation = feature_qc_metrics$conc_cv_tqc
+      targeted_feature_identifier = feature_qc_metrics$feature_id,
+      coefficient_of_variation_of_concentration = feature_qc_metrics$conc_cv_tqc
     )
   ),
   
   # Signal-to-blank
-  # TO-DO: Add term to in the psi-ms-CV
   rmzqc::MzQCqualityMetric$new(
-    accession = "MS:XXXXXXX", # to be defined
-    name = "median-based signal-to-blank ratio",
+    accession = "MS:4000258",
+    name = "median-based signal-to-blank ratio per feature",
     value = list(
       feature_id = feature_qc_metrics$feature_id,
       signal_to_blank_ratio = feature_qc_metrics$sb_ratio_pblk
@@ -649,17 +645,16 @@ quality_metrics <- list(
   ),
   
   # Response Curve Linearity
-  # TO-DO: Add term to in the psi-ms-CV
   
   # One table containing the three parameters of the
   # feature-specific response curve regression:
   # R2, normalized slope, normalized intercept
   
   rmzqc::MzQCqualityMetric$new(
-    accession = "MS:XXXXXXX", # to be defined
+    accession = "MS:4000259",
     name = "response curve linearity",
     value = list(
-      feature_id = feature_qc_metrics$feature_id,
+      targeted_feature_identifier = feature_qc_metrics$feature_id,
       coefficient_of_determination = feature_qc_metrics$r2_rqc_B,
       normalized_slope = feature_qc_metrics$slopenorm_rqc_B,
       normalized_intercept = feature_qc_metrics$y0norm_rqc_B
@@ -677,7 +672,7 @@ controlled_vocabularies <- list(
   rmzqc::MzQCcontrolledVocabulary$new(
     name = "Proteomics Standards Initiative Mass Spectrometry Ontology",
     uri = "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.1.258/psi-ms.obo",
-    version = "4.1.258" # change after update of terms
+    version = "4.2.12"
   )
 )
 
@@ -686,13 +681,13 @@ mzqc_obj <- rmzqc::MzQCmzQC$new(
   creationDate = rmzqc::MzQCDateTime$new(),
   contactName = "Franziska Nicolaus",
   contactAddress = "f.nicolaus@fz-juelich.de",
-  description = "MRMhub lipidomics workflow mzQC export containing pooled QC concentration coefficients of variation, signal-to-blank ratios, and response curve linearity metrics.",
+  description = "MRMhub lipidomics workflow mzQC export containing pooled QC coefficients of variation of concentration, signal-to-blank ratios, and response curve linearity metrics.",
   runQualities = list(),
   setQualities = list(set_quality),
   controlledVocabularies = controlled_vocabularies
 )
 
-output_file <- "../output/lipidomicsUseCase.mzQC"
+output_file <- file.path(output, "lipidomicsUseCase.mzQC")
 
 rmzqc::writeMZQC(
   filepath = output_file,
@@ -706,7 +701,7 @@ cat("Yay! The mzQC file has been successfully written to:", output_file, "\n")
 
 
 # Histograms
-theme_qc_large <- theme_qc +
+theme_qc <- theme_minimal +
   theme(
     plot.title = element_text(size = 12),
     axis.title = element_text(size = 10),
@@ -729,7 +724,7 @@ p1 <- ggplot(feature_qc_metrics, aes(x = conc_cv_bqc)) +
     x = "Concentration CV (%)",
     y = "Number of features"
   ) +
-  theme_qc_large
+  theme_qc
 
 # TQC CV
 p2 <- ggplot(feature_qc_metrics, aes(x = conc_cv_tqc)) +
@@ -747,7 +742,7 @@ p2 <- ggplot(feature_qc_metrics, aes(x = conc_cv_tqc)) +
     x = "Concentration CV (%)",
     y = "Number of features"
   ) +
-  theme_qc_large
+  theme_qc
 
 # Signal-to-Blank
 p3 <- ggplot(feature_qc_metrics, aes(x = sb_ratio_pblk)) +
@@ -762,7 +757,7 @@ p3 <- ggplot(feature_qc_metrics, aes(x = sb_ratio_pblk)) +
     x = "Median Signal-to-Blank Ratio (log10)",
     y = "Number of features"
   ) +
-  theme_qc_large
+  theme_qc
 
 # R²
 p4 <- ggplot(feature_qc_metrics, aes(x = r2_rqc_B)) +
@@ -776,7 +771,7 @@ p4 <- ggplot(feature_qc_metrics, aes(x = r2_rqc_B)) +
     x = expression(R^2),
     y = "Number of features"
   ) +
-  theme_qc_large
+  theme_qc
 
 
 # Arrange in a grid
@@ -784,8 +779,7 @@ p_histograms <- (p1 | p2) / (p3 | p4)
 show(p_histograms)
 
 # Save histogram
-ggsave(
-  "../output/histograms.pdf",
+ggsave(file.path(output,"histograms.pdf"),
   plot = p_histograms
 )
 
@@ -793,7 +787,7 @@ ggsave(
 # Additional calculations
 
 # Mean / median of CVs
-qc %>%
+feature_qc_metrics %>%
   summarise(
     BQC_median = median(conc_cv_bqc, na.rm = TRUE),
     BQC_mean = mean(conc_cv_bqc, na.rm = TRUE),
